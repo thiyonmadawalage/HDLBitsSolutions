@@ -1,0 +1,42 @@
+module top_module(
+    input clk,
+    input [7:0] in,
+    input reset,    // Synchronous reset
+    output reg[23:0] out_bytes,
+    output done); //
+
+
+    parameter HUNT = 2'd0, B1 = 2'd1, B2 = 2'd2, DONE = 2'd3;
+    reg [1:0] state, next_state;
+    
+    // 1. Next-state logic (combinational)
+    always @(*) begin
+        case (state)
+            HUNT:    next_state = in[3] ? B1 : HUNT;
+            B1:      next_state = B2;
+            B2:      next_state = DONE;
+            DONE:    next_state = in[3] ? B1 : HUNT;
+            default: next_state = HUNT;
+        endcase
+        
+    end
+
+    // 2. State register (sequential, synchronous reset)
+    always @(posedge clk) begin
+        if (reset) begin
+            state <= HUNT ;
+            end else begin
+            state <= next_state;
+            end
+        
+       
+        out_bytes <= {  out_bytes[15:0] ,in };
+            
+            
+            
+    end
+
+    // 3. Output logic (Moore)
+    assign done = state == DONE ;
+
+endmodule
