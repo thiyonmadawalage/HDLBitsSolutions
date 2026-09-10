@@ -1,0 +1,46 @@
+module top_module(
+    input clk,
+    input in,
+    input reset,    // Synchronous reset
+    output done
+); 
+    
+    reg[3:0] count; 
+    
+    reg[3:0] state, next_state;
+    
+        
+   	localparam IDLE=3'd0, DATA=3'd1, STOP=3'd2, DONE=3'd3, ERR=3'd4;    
+    
+    
+    always@(*) begin
+        case(state) 
+            IDLE: next_state <= in ? IDLE : DATA;
+            DATA: next_state <= (count == 7) ? STOP : DATA;
+            STOP: next_state <= in ? DONE : ERR;
+            DONE: next_state <= in ? IDLE : DATA;
+            ERR:  next_state <= in ? IDLE : ERR;
+              
+            
+            
+        endcase
+        
+        
+    end
+    
+    
+    
+    always@(posedge clk) begin
+        if(reset) begin
+            state <= IDLE;
+        end else begin
+            state <= next_state;
+            count <= (state == DATA) ? count + 1 : 0;
+        end
+        
+    end
+    
+    
+    assign done = state == DONE;
+    
+endmodule
